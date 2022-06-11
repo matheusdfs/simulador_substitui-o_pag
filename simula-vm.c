@@ -121,6 +121,46 @@ int LRU(int ram_size, int* ref)
     return page_fault;
 }
 
+int next_OPT_position(int* ram, int* ref, int ram_size, int iteration)
+{
+    int *aux = malloc(sizeof(int) * ram_size);
+    
+    for(int i = 0; i < ram_size; i++)
+    {
+        aux[i] = 9999;
+
+        if(ram[i] == -1)
+        {
+            return i;
+        }
+    }
+
+    for(int i = iteration + 1; i < n_ref; i++)
+    {
+        for(int j = 0; j < ram_size; j++)
+        {
+            if(ref[i] == ram[j])
+            {
+                aux[j] = i - iteration;
+            }
+        }
+    }
+
+    int bigger_indice = 0;
+    int bigger_value = 0;
+
+    for(int i = 0; i < ram_size; i++)
+    {
+        if(aux[i] > bigger_value)
+        {
+            bigger_value = aux[i];
+            bigger_indice = i;
+        }
+    }
+
+    return bigger_indice;
+}
+
 int OPT(int ram_size, int* ref)
 {
     int page_fault = 0;
@@ -147,13 +187,12 @@ int OPT(int ram_size, int* ref)
 
         if(!isAlreadyInMemory)
         {
-            int next_pos = next_LRU_position(ram, ref,ram_size);
+            int next_pos = next_OPT_position(ram, ref, ram_size, i);
 
             if(ram[next_pos] != -1)
                 page_fault++;
 
             ram[next_pos] = ref[i];
-            aux[next_pos] = i;
         }
     }
 
@@ -164,11 +203,11 @@ int* get_ref_pag()
 {
     //opening the document to count the lines
     FILE* file = fopen("referencias.txt", "r");
-    char line[2];
+    char line[10];
 
     int n = 1;
 
-    while (fgets(line, sizeof(line), file) && n < NUM_REF_MAX)
+    while (fgets(line, sizeof(line), file))
         if(*line == '\n')
             n++;
 
@@ -197,6 +236,8 @@ int* get_ref_pag()
 
 int main(int argc, char *argv[])
 {
+    printf("%d", argc);
+    
     if(argv[1] == NULL)
         puts("Error: precisa inserir o número de quadros disponíveis na RAM");
 
@@ -204,7 +245,9 @@ int main(int argc, char *argv[])
 
     int *ref = get_ref_pag();
 
-    printf ("%5d quadros, %7d refs: FIFO: %5d PFs, LRU: %5d PFs, OPT: %5d PFs\n", tam_ram, n_ref, FIFO(tam_ram, ref), LRU(tam_ram, ref), 0) ;
+    printf("here");
+
+    printf ("%5d quadros, %7d refs: FIFO: %5d PFs, LRU: %5d PFs, OPT: %5d PFs\n", tam_ram, n_ref, FIFO(tam_ram, ref), LRU(tam_ram, ref), OPT(tam_ram, ref)) ;
 
     return 0;
 }
