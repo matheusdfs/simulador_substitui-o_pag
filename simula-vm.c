@@ -32,6 +32,8 @@ int FIFO(int ram_size, int* ref)
 
     for(int i = 0; i < n_ref; i++)
     {
+        printf("%d\n", i);
+
         int isAlreadyInMemory = FALSE;
         
         for(int j = 0; j < ram_size; j++)
@@ -53,6 +55,8 @@ int FIFO(int ram_size, int* ref)
             count_next++;
         }
     }
+
+    free(ram);
 
     return page_fault;
 }
@@ -96,6 +100,8 @@ int LRU(int ram_size, int* ref)
 
     for(int i = 0; i < n_ref; i++)
     {   
+        printf("%d\n", i);
+
         int isAlreadyInMemory = FALSE;
         
         for(int j = 0; j < ram_size; j++)
@@ -117,6 +123,9 @@ int LRU(int ram_size, int* ref)
             aux[next_pos] = i;
         }
     }
+
+    free(ram);
+    free(aux);
 
     return page_fault;
 }
@@ -158,6 +167,8 @@ int next_OPT_position(int* ram, int* ref, int ram_size, int iteration)
         }
     }
 
+    free(aux);
+
     return bigger_indice;
 }
 
@@ -175,6 +186,8 @@ int OPT(int ram_size, int* ref)
 
     for(int i = 0; i < n_ref; i++)
     {   
+        printf("%d\n", i);
+        
         int isAlreadyInMemory = FALSE;
         
         for(int j = 0; j < ram_size; j++)
@@ -196,6 +209,8 @@ int OPT(int ram_size, int* ref)
         }
     }
 
+    free(ram);
+    
     return page_fault;
 }
 
@@ -205,29 +220,33 @@ int* get_ref_pag()
     FILE* file = fopen("referencias.txt", "r");
     char line[10];
 
-    int n = 1;
+   //extract character from file and store in chr
+    char chr = getc(file);
+    int count_lines = 0;
 
-    while (fgets(line, sizeof(line), file))
-        if(*line == '\n')
-            n++;
+    while (chr != EOF)
+    {
+        //Count whenever new line is encountered
+        if (chr == 'n')
+        {
+            count_lines = count_lines + 1;
+        }
+        //take next character from file.
+        chr = getc(file);
+    }
+    fclose(file); //close file.
 
-    fclose(file);
+    int n = 1000000;
 
-    //allocate array with size
-    int *ref = malloc(sizeof(int)*n);
+    int *ref = malloc(sizeof(int)*1000000);
     n_ref = n;
-
-    //running the document to get the info
-    file = fopen("referencias.txt", "r");
 
     int i = 0;
 
-    while (fgets(line, sizeof(line), file))
-        if(*line != '\n')
-        {
-            ref[i] = *line - '0'; 
-            i++;
-        }
+    while(!feof(stdin))
+    {
+        scanf("%d\n", &ref[i++]);
+    }
 
     fclose(file);
 
@@ -236,16 +255,12 @@ int* get_ref_pag()
 
 int main(int argc, char *argv[])
 {
-    printf("%d", argc);
-    
     if(argv[1] == NULL)
         puts("Error: precisa inserir o número de quadros disponíveis na RAM");
 
     int tam_ram = (int)*argv[1] - '0';
 
     int *ref = get_ref_pag();
-
-    printf("here");
 
     printf ("%5d quadros, %7d refs: FIFO: %5d PFs, LRU: %5d PFs, OPT: %5d PFs\n", tam_ram, n_ref, FIFO(tam_ram, ref), LRU(tam_ram, ref), OPT(tam_ram, ref)) ;
 
